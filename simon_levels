@@ -1,0 +1,171 @@
+int level = 0;
+int notes[] = {262,330,392,524};
+int const bluePin = 2;    // these values show you which pins to connect for the 4 leds and the 4 switches (the speaker is on pin 11)
+int const greenPin = 3;
+int const yellowPin = 4;
+int const redPin = 5;
+int const switchBlue = 6;
+int const switchGreen = 7;
+int const switchYellow = 8;
+int const switchRed = 9;
+
+void setup () {
+ 
+  pinMode (switchBlue, INPUT);
+  pinMode (switchGreen, INPUT);
+  pinMode (switchYellow, INPUT);
+  pinMode (switchRed, INPUT);
+  pinMode (bluePin, OUTPUT);
+  pinMode (greenPin, OUTPUT);
+  pinMode (yellowPin, OUTPUT);
+  pinMode (redPin, OUTPUT);
+  Serial.begin (9600);
+
+}
+
+void loop () {
+  
+  delay (1000);
+  boolean poging = false;
+    // Generate a new code (array), display the colours and play the tones
+  int code[4+level];
+  Serial.println ("");
+  Serial.print ("Level: ");
+  Serial.println (level);
+  Serial.println ("Nieuwe code: ");
+  for (int i = 0; i <= 3+level; i++){
+    randomSeed (analogRead(0)); 
+    code[i] = random(1,5);
+    delay (20);
+    Serial.print (code[i]);
+    delay (20);
+    digitalWrite (code[i]+1,HIGH);
+    tone(11,notes[code[i]-1],50);
+    delay (120);
+    digitalWrite (code[i]+1,LOW);
+    delay (120);
+  }
+  delay(1000);
+  long start = millis();
+  long eind = start;
+   
+ 
+    int blue = 0; // reset the values of the push buttons in the beginning of each attempt
+    int green = 0;  
+    int yellow = 0;  
+    int red = 0;
+    int teller = 0;  // this counter records the number of buttons pushed
+    int knop[4+level];  // this is the array in which the user code (the trial of the player) is stored 
+    delay(15);
+
+    while (teller <4+level){  // keeps going until the user has pushed 4 (+level) buttons
+  
+      do {    // keeps going until a new button is pushed
+
+       
+        blue = digitalRead (switchBlue);
+        green = digitalRead (switchGreen);
+        red = digitalRead (switchRed);
+        yellow = digitalRead (switchYellow);
+        delay  (5);
+      
+        if (blue != 0){
+          digitalWrite (bluePin,HIGH);
+          tone(11,notes[0],30);
+          knop[teller] = 1;
+          delay (200);
+          digitalWrite (bluePin,LOW);
+        } 
+        if (green != 0){
+          digitalWrite (greenPin,HIGH);
+          tone(11,notes[1],30);
+          knop[teller] = 2;
+          delay (200);
+          digitalWrite (greenPin,LOW);
+        }
+        if (yellow != 0){
+          digitalWrite (yellowPin,HIGH);
+          tone(11,notes[2],30);
+          knop[teller] = 3;
+          delay (200);
+          digitalWrite (yellowPin,LOW);
+        }
+        if (red != 0){
+          digitalWrite (redPin,HIGH);
+          tone(11,notes[3],30);
+          knop[teller] = 4;
+          delay (200);
+          digitalWrite (redPin,LOW);
+        }
+        
+        delay (15);
+        eind = millis();
+        
+      } while (blue == 0 && green == 0 && yellow == 0 && red == 0 && eind < start+4000+500*level); // keeps waiting for input until time runs out.
+ 
+    delay (100);
+    teller++;
+    blue = 0;
+    green = 0;
+    yellow = 0;
+    red = 0;
+  }
+
+  Serial.println ("");
+  Serial.println ("ingedrukte code: ");
+  for (int i = 0; i <= 3+level; i++){
+    Serial.print (knop[i]);
+  }
+
+  Serial.println ("");
+  Serial.println ("juiste code: ");
+  for (int i = 0; i <= 3+level; i++){
+    Serial.print (code[i]);
+  }
+
+  delay (500);
+  int j = 0;
+  for (int i = 0; i <= 3+level; i++){ 
+    if (knop[i] == code[i]){
+      j++; // every element of the array is being checked
+     }
+  }
+
+  if (j == 4+level){ // What to do if the code is right?
+   Serial.println ("");
+   Serial.println ("juiste code!");
+   level = level+1;
+   Serial.print ("Volgende level: ");
+   Serial.println (level);
+   poging = true;
+      for (int x = 1; x < 20; x++){
+        tone(11,notes[x%4],15);
+        digitalWrite (bluePin, HIGH);
+        digitalWrite (greenPin, HIGH);
+        digitalWrite (yellowPin, HIGH);
+        digitalWrite (redPin, HIGH);
+        delay (15);
+        digitalWrite (bluePin, LOW);
+        digitalWrite (greenPin, LOW);
+        digitalWrite (yellowPin, LOW);
+        digitalWrite (redPin, LOW);
+        delay (15);
+      }
+    delay (1000);
+   }
+
+  else { // What to do if the code is wrong?
+    poging = false;
+    level = 0;
+    Serial.println ("Foute code!");
+    Serial.print ("Terug naar level: ");
+    Serial.println (level);
+    digitalWrite (redPin, HIGH);
+    tone(11,100,500);
+    delay (1000);
+    digitalWrite (redPin, LOW);
+    delay (1000); 
+    }
+  j = 0;
+
+} 
